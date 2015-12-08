@@ -1,6 +1,6 @@
 #
 # Interface versions exposed by PHP:
-# 
+#
 %@SCL@php_core_api @PHP_APIVER@
 %@SCL@php_zend_api @PHP_ZENDVER@
 %@SCL@php_pdo_api  @PHP_PDOVER@

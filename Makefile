@@ -5,10 +5,10 @@
 #-------------------------------------------------------------------------------------
 
 # the upstream project
-OBS_PROJECT := EA4-Experimental
+OBS_PROJECT := EA4-experimental
 
 # the package name in OBS
-OBS_PACKAGE := php70-php
+OBS_PACKAGE := scl-php70
 
 #-------------------------------------------------------------------------------------
 #

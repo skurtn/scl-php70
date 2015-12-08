@@ -18,7 +18,6 @@
 # Force Software Collections on
 %global _scl_prefix %{ns_dir}
 %global scl %{ns_name}-%{pkg}
-%scl_package %{scl}
 
 %global pkg_name          %{name}
 %global _root_sysconfdir  %{_sysconfdir}
@@ -28,7 +27,6 @@
 %global _root_libdir      %{_libdir}
 %global _root_prefix      %{_prefix}
 %global _root_initddir    %{_initddir}
-%endif
 
 # API/ABI check
 %global apiver      20151012
@@ -81,10 +79,9 @@
 # Optional components; pass "--with mssql" etc to rpmbuild.
 %global with_oci8      %{?_with_oci8:1}%{!?_with_oci8:0}
 %global with_imap      1
-%global with_interbase 1
+%global with_interbase 0
 %global with_mcrypt    1
 %global mcrypt_prefix  /opt/cpanel/libmcrypt
-%global with_freetds   1
 %global with_tidy      1
 %global with_sqlite3   1
 %global with_enchant   1
@@ -109,6 +106,7 @@
 
 # build with system libgd (gd-last in remi repo)
 %global  with_libgd 1
+%global  gd_prefix /opt/cpanel/gd
 
 # systemd to manage the service, Fedora >= 15
 # systemd with notify mode, Fedora >= 16
@@ -697,27 +695,10 @@ support for multi-byte string handling to PHP.
 %package gd
 Summary: A module for PHP applications for using the gd graphics library
 Group: Development/Languages
-# All files licensed under PHP version 3.01
-%if %{with_libgd}
 License: PHP
-%else
-# bundled libgd is licensed under BSD
-License: PHP and BSD
-%endif
 Requires: %{?scl_prefix}php-common%{?_isa} = %{version}-%{release}
-# Required to build the bundled GD library
-BuildRequires: libjpeg-devel, libpng-devel, freetype-devel
-BuildRequires: libXpm-devel
-%if %{with_libgd}
-BuildRequires: gd-devel >= 2.1.1
-%if 0%{?fedora} <= 19 && 0%{?rhel} <= 7
-Requires: gd-last%{?_isa} >= 2.1.1
-%else
-Requires: gd%{?_isa} >= 2.1.1
-%endif
-%else
-BuildRequires: libwebp-devel
-%endif
+BuildRequires: ea-gd-devel
+Requires: ea-gd
 
 %description gd
 The %{?scl_prefix}php-gd package contains a dynamic shared object that will add
@@ -766,7 +747,7 @@ Group: Development/Languages
 # All files licensed under PHP version 3.01
 License: PHP
 Requires: %{?scl_prefix}php-common%{?_isa} = %{version}-%{release}
-BuildRequires: libmcrypt-devel
+BuildRequires: %{ns_name}-libmcrypt-devel
 
 %description mcrypt
 The %{?scl_prefix}php-mcrypt package contains a dynamic shared object that will add
@@ -785,22 +766,6 @@ BuildRequires: libtidy-devel
 %description tidy
 The %{?scl_prefix}php-tidy package contains a dynamic shared object that will add
 support for using the tidy library to PHP.
-%endif
-
-%if %{with_freetds}
-%package pdo-dblib
-Summary: PDO driver Microsoft SQL Server and Sybase databases
-Group: Development/Languages
-# All files licensed under PHP version 3.01
-License: PHP
-Requires: %{?scl_prefix}php-pdo%{?_isa} = %{version}-%{release}
-BuildRequires: freetds-devel
-Provides: %{?scl_prefix}php-pdo_dblib, %{?scl_prefix}php-pdo_dblib%{?_isa}
-
-%description pdo-dblib
-The %{?scl_prefix}php-pdo-dblib package contains a dynamic shared object
-that implements the PHP Data Objects (PDO) interface to enable access from
-PHP to Microsoft SQL Server and Sybase databases through the FreeTDS libary.
 %endif
 
 %package pspell
@@ -835,8 +800,7 @@ Group: System Environment/Libraries
 # All files licensed under PHP version 3.01
 License: PHP
 Requires: %{?scl_prefix}php-common%{?_isa} = %{version}-%{release}
-# Upstream requires 4.0, we require 50 to ensure use of libicu-last
-BuildRequires: libicu-devel >= 50
+BuildRequires: libicu-devel >= 4.0
 
 %description intl
 The %{?scl_prefix}php-intl package contains a dynamic shared object that will add
@@ -887,7 +851,7 @@ support for JavaScript Object Notation (JSON) to PHP.
 
 
 %prep
-: Building %{name}-%{version}-%{release} with systemd=%{with_systemd} imap=%{with_imap} interbase=%{with_interbase} mcrypt=%{with_mcrypt} freetds=%{with_freetds} sqlite3=%{with_sqlite3} tidy=%{with_tidy} zip=%{with_zip}
+: Building %{name}-%{version}-%{release} with systemd=%{with_systemd} imap=%{with_imap} interbase=%{with_interbase} mcrypt=%{with_mcrypt} sqlite3=%{with_sqlite3} tidy=%{with_tidy} zip=%{with_zip}
 %if 0%{?gh_date}
 %setup -q -n %{gh_project}-%{gh_commit}
 %else
@@ -1159,12 +1123,7 @@ build --libdir=%{_libdir}/php \
 %endif
       --enable-mbstring=shared \
       --enable-mbregex \
-%if %{with_libgd}
-      --with-gd=shared,%{_root_prefix} \
-%else
-      --with-gd=shared \
-      --with-webp-dir=%{_root_prefix} \
-%endif
+      --with-gd=shared,%{gd_prefix} \
       --with-gmp=shared \
       --enable-calendar=shared \
       --enable-bcmath=shared \
@@ -1227,9 +1186,6 @@ build --libdir=%{_libdir}/php \
 %endif
 %if %{with_tidy}
       --with-tidy=shared,%{_root_prefix} \
-%endif
-%if %{with_freetds}
-      --with-pdo-dblib=shared,%{_root_prefix} \
 %endif
       --enable-sysvmsg=shared --enable-sysvshm=shared --enable-sysvsem=shared \
       --enable-shmop=shared \
@@ -1480,9 +1436,6 @@ for mod in pgsql odbc ldap snmp xmlrpc \
 %endif
 %if %{with_tidy}
     tidy \
-%endif
-%if %{with_freetds}
-    pdo_dblib \
 %endif
 %if %{with_recode}
     recode \
@@ -1797,9 +1750,6 @@ fi
 %endif
 %if %{with_tidy}
 %files tidy -f files.tidy
-%endif
-%if %{with_freetds}
-%files pdo-dblib -f files.pdo_dblib
 %endif
 %files pspell -f files.pspell
 %files intl -f files.intl
