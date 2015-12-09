@@ -18,8 +18,8 @@
 # Force Software Collections on
 %global _scl_prefix %{ns_dir}
 %global scl %{ns_name}-%{pkg}
+%scl_package %{scl}
 
-%global pkg_name          %{name}
 %global _root_sysconfdir  %{_sysconfdir}
 %global _root_bindir      %{_bindir}
 %global _root_sbindir     %{_sbindir}
@@ -215,6 +215,8 @@ Patch301: php-7.0.0-oldpcre.patch
 
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+BuildRequires: scl-utils-build
 
 BuildRequires: bzip2-devel, curl-devel >= 7.9, %{db_devel}
 BuildRequires: httpd-devel >= 2.0.46-1, pam-devel
