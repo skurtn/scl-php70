@@ -20,14 +20,6 @@
 %global scl %{ns_name}-%{pkg}
 %scl_package %{scl}
 
-%global _root_sysconfdir  %{_sysconfdir}
-%global _root_bindir      %{_bindir}
-%global _root_sbindir     %{_sbindir}
-%global _root_includedir  %{_includedir}
-%global _root_libdir      %{_libdir}
-%global _root_prefix      %{_prefix}
-%global _root_initddir    %{_initddir}
-
 # API/ABI check
 %global apiver      20151012
 %global zendver     20151012
@@ -1612,8 +1604,8 @@ fi
 %defattr(-,root,root)
 %{_httpd_moddir}/libphp7.so
 %if 0%{?scl:1}
-%dir %{_libdir}/apache2
-%dir %{_libdir}/apache2/modules
+%dir %{_root_libdir}/apache2
+%dir %{_root_libdir}/apache2/modules
 %{_root_httpd_moddir}/lib%{scl}.so
 %endif
 %attr(0770,root,apache) %dir %{_localstatedir}/lib/php/session
