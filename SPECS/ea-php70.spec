@@ -39,17 +39,11 @@
 %global _httpd_confdir     %{_root_sysconfdir}/apache2/conf.d
 %global _httpd_moddir      %{_libdir}/apache/modules
 %global _root_httpd_moddir %{_root_libdir}/apache2/modules
-%if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
+
 # httpd 2.4 values
 %global _httpd_apxs        %{_root_bindir}/apxs
 %global _httpd_modconfdir  %{_root_sysconfdir}/apach2/conf.modules.d
 %global _httpd_contentdir  /usr/share/apache2
-%else
-# httpd 2.2 values
-%global _httpd_apxs        %{_root_sbindir}/apxs
-%global _httpd_modconfdir  %{_root_sysconfdir}/apache2/conf.d
-%global _httpd_contentdir  /var/www
-%endif
 
 %global macrosdir %(d=%{_rpmconfigdir}/macros.d; [ -d $d ] || d=%{_root_sysconfdir}/rpm; echo $d)
 
@@ -108,12 +102,14 @@
 %else
 %global with_systemd 0
 %endif
+
 # httpd 2.4.10 with httpd-filesystem and sethandler support
 %if 0%{?fedora} >= 21
 %global with_httpd2410 1
 %else
 %global with_httpd2410 0
 %endif
+
 
 %global with_zip       0
 %global with_libzip    1
@@ -205,13 +201,9 @@ Patch301: php-7.0.0-oldpcre.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires: scl-utils-build
-
 BuildRequires: bzip2-devel, curl-devel >= 7.9, %{db_devel}
-BuildRequires: httpd-devel >= 2.0.46-1, pam-devel
-%if %{with_httpd2410}
-# to ensure we are using httpd with filesystem feature (see #1081453)
-BuildRequires: httpd-filesystem
-%endif
+BuildRequires: ea-apache24-devel >= 2.0.46-1, pam-devel
+BuildRequires: ea-apache24-tools
 BuildRequires: libstdc++-devel, openssl-devel
 %if %{with_sqlite3}
 # For SQLite3 extension
@@ -230,17 +222,13 @@ BuildRequires: libtool-ltdl-devel
 BuildRequires: systemtap-sdt-devel
 %endif
 BuildRequires: bison
-Requires: httpd-mmn = %{_httpd_mmn}
+Requires: ea-apache24-mmn = %{_httpd_mmn}
 Provides: %{?scl_prefix}mod_php = %{version}-%{release}
 Requires: %{?scl_prefix}php-common%{?_isa} = %{version}-%{release}
 # For backwards-compatibility, require php-cli for the time being:
 Requires: %{?scl_prefix}php-cli%{?_isa} = %{version}-%{release}
 # To ensure correct /var/lib/php/session ownership:
-%if %{with_httpd2410}
-Requires(pre): httpd-filesystem
-%else
-Requires(pre): httpd
-%endif
+Requires(pre): ea-apache24
 
 
 # Don't provides extensions, or shared libraries (embedded)
@@ -309,13 +297,8 @@ Requires(post): systemd-sysv
 Requires(preun): initscripts
 Requires(postun): initscripts
 %endif
-%if %{with_httpd2410}
-# To ensure correct /var/lib/php/session ownership:
-Requires(pre): httpd-filesystem
 # For php.conf in /etc/httpd/conf.d
 # and version 2.4.10 for proxy support in SetHandler
-Requires: httpd-filesystem >= 2.4.10
-%endif
 
 %description fpm
 PHP-FPM (FastCGI Process Manager) is an alternative PHP FastCGI
