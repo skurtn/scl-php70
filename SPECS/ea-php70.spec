@@ -149,11 +149,7 @@ License: PHP and Zend and BSD
 Group: Development/Languages
 URL: http://www.php.net/
 
-%if 0%{?gh_date}
-Source0: https://github.com/%{gh_owner}/%{gh_project}/archive/%{gh_commit}/%{gh_project}-%{version}%{?prever}%{?gh_short:-%{gh_short}}.tar.gz
-%else
-Source0: http://www.php.net/distributions/php-%{version}%{?rcver}.tar.xz
-%endif
+Source0: php-%{version}%{?rcver}.tar.xz
 Source1: php.conf
 Source2: php.ini
 Source3: macros.php
