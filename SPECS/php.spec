@@ -1610,8 +1610,8 @@ fi
 %defattr(-,root,root)
 %{_httpd_moddir}/libphp7.so
 %if 0%{?scl:1}
-%dir %{_libdir}/httpd
-%dir %{_libdir}/httpd/modules
+%dir %{_libdir}/apache2
+%dir %{_libdir}/apache2/modules
 %{_root_httpd_moddir}/lib%{scl}.so
 %endif
 %attr(0770,root,apache) %dir %{_localstatedir}/lib/php/session
