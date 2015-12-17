@@ -42,7 +42,7 @@
 
 # httpd 2.4 values
 %global _httpd_apxs        %{_root_bindir}/apxs
-%global _httpd_modconfdir  %{_root_sysconfdir}/apach2/conf.modules.d
+%global _httpd_modconfdir  %{_root_sysconfdir}/apache2/conf.modules.d
 %global _httpd_contentdir  /usr/share/apache2
 
 %global macrosdir %(d=%{_rpmconfigdir}/macros.d; [ -d $d ] || d=%{_root_sysconfdir}/rpm; echo $d)
@@ -64,11 +64,19 @@
 
 # Optional components; pass "--with mssql" etc to rpmbuild.
 %global with_oci8      %{?_with_oci8:1}%{!?_with_oci8:0}
-%global with_imap      1
+
+# don't build imap or tidy on c7
+%if 0%{?rhel} < 7
+%global with_imap 1
+%global with_tidy 1
+%else
+%global with_imap 0
+%global with_tidy 0
+%endif
+
 %global with_interbase 0
 %global with_mcrypt    1
 %global mcrypt_prefix  /opt/cpanel/libmcrypt
-%global with_tidy      1
 %global with_sqlite3   1
 %global with_enchant   1
 %global with_recode    1
@@ -1008,17 +1016,16 @@ cat $(aclocal --print-ac-dir)/libtool.m4 > build/libtool.m4
 # Bison files
 ./genfiles
 %endif
-
-#ensure that RPATH includes the custom gd location
-PHP_RPATH=`pkg-config ea-gdlib --variable=libdir`
-export PHP_RPATH
-
 # Regenerate configure scripts (patches change config.m4's)
 touch configure.in
 ./buildconf --force
 
 CFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing -Wno-pointer-sign"
 export CFLAGS
+
+# ensure we're using the right gd
+PHP_RPATH=`pkg-config ea-gdlib --variable=libdir`
+export PHP_RPATH
 
 # Install extension modules in %{_libdir}/php/modules.
 EXTENSION_DIR=%{_libdir}/php/modules; export EXTENSION_DIR
@@ -1051,7 +1058,6 @@ ln -sf ../configure
     --with-config-file-scan-dir=%{_sysconfdir}/php.d \
     --disable-debug \
     --with-pic \
-    --disable-rpath \
     --without-pear \
     --with-exec-dir=%{_bindir} \
     --with-freetype-dir=%{_root_prefix} \
