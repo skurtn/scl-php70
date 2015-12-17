@@ -1009,6 +1009,10 @@ cat $(aclocal --print-ac-dir)/libtool.m4 > build/libtool.m4
 ./genfiles
 %endif
 
+#ensure that RPATH includes the custom gd location
+PHP_RPATH=`pkg-config ea-gdlib --variable=libdir`
+export PHP_RPATH
+
 # Regenerate configure scripts (patches change config.m4's)
 touch configure.in
 ./buildconf --force
