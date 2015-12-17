@@ -90,9 +90,9 @@
 %global with_dtrace 1
 %endif
 
-# build with system libgd (gd-last in remi repo)
+# build with system libgd
 %global  with_libgd 1
-%global  gd_prefix /opt/cpanel/gd
+%global  gd_prefix /opt/cpanel/ea-gd
 
 # systemd to manage the service, Fedora >= 15
 # systemd with notify mode, Fedora >= 16
