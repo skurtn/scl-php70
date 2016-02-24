@@ -145,8 +145,8 @@
 Summary:  PHP scripting language for creating dynamic web sites
 Vendor:   cPanel, Inc.
 Name:     %{?scl_prefix}php
-Version:  7.0.0
-Release:  6%{?dist}
+Version:  7.0.3
+Release:  1%{?dist}
 # All files licensed under PHP version 3.01, except
 # Zend is licensed under Zend
 # TSRM is licensed under BSD
@@ -154,7 +154,7 @@ License:  PHP and Zend and BSD
 Group:    Development/Languages
 URL:      http://www.php.net/
 
-Source0: http://www.php.net/distributions/php-%{version}%{?rcver}.tar.xz
+Source0: http://www.php.net/distributions/php-%{version}%{?rcver}.tar.bz2
 Source2: php.ini
 Source3: macros.php
 Source4: php-fpm.conf
@@ -1815,6 +1815,12 @@ fi
 
 
 %changelog
+* Wed Feb 24 2016 Jacob Perkins <jacob.perkins@cpanel.net> - 7.0.3-1
+- Updated to version 7.0.3 via update_pkg.pl (EA-4203)
+
+* Wed Feb 24 2016 Jacob Perkins <jacob.perkins@cpanel.net> - 7.0.0-7
+- Updated SPEC from xz to bz2 to match other PHP SCL packages
+
 * Fri Feb 19 2016 S. Kurt Newman <kurt.newman@cpanel.net> - 7.0.0-6
 - mod_php adjusted to conflict with other mod_php versions, and
   not itself.  this lets the user reinstall the package without
