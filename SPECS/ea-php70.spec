@@ -145,8 +145,8 @@
 Summary:  PHP scripting language for creating dynamic web sites
 Vendor:   cPanel, Inc.
 Name:     %{?scl_prefix}php
-Version:  7.0.0
-Release:  7%{?dist}
+Version:  7.0.3
+Release:  1%{?dist}
 # All files licensed under PHP version 3.01, except
 # Zend is licensed under Zend
 # TSRM is licensed under BSD
@@ -1815,6 +1815,9 @@ fi
 
 
 %changelog
+* Wed Feb 24 2016 Jacob Perkins <jacob.perkins@cpanel.net> - 7.0.3-1
+- Updated to version 7.0.3 via update_pkg.pl (EA-4203)
+
 * Wed Feb 24 2016 Jacob Perkins <jacob.perkins@cpanel.net> - 7.0.0-7
 - Updated SPEC from xz to bz2 to match other PHP SCL packages
 
