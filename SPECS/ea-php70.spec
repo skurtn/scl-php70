@@ -145,7 +145,7 @@
 Summary:  PHP scripting language for creating dynamic web sites
 Vendor:   cPanel, Inc.
 Name:     %{?scl_prefix}php
-Version:  7.0.3
+Version:  7.0.4
 Release:  1%{?dist}
 # All files licensed under PHP version 3.01, except
 # Zend is licensed under Zend
@@ -1815,6 +1815,9 @@ fi
 
 
 %changelog
+* Thu Mar 03 2016 David Nielson <david.nielson@cpanel.net> - 7.0.4-1
+- Updated to version 7.0.4 via update_pkg.pl (EA-4222)
+
 * Wed Feb 24 2016 Jacob Perkins <jacob.perkins@cpanel.net> - 7.0.3-1
 - Updated to version 7.0.3 via update_pkg.pl (EA-4203)
 
