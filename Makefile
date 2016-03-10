@@ -1,3 +1,3 @@
 OBS_PROJECT := EA4
-OBS_PACKAGE := php70-php
+OBS_PACKAGE := scl-php70
 include $(EATOOLS_BUILD_DIR)obs.mk
