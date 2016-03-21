@@ -80,10 +80,8 @@
 %global with_interbase 0
 %endif
 %if 0%{?rhel} < 7
-%global with_imap 1
 %global with_tidy 1
 %else
-%global with_imap 0
 %global with_tidy 0
 %endif
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
@@ -146,7 +144,7 @@ Summary:  PHP scripting language for creating dynamic web sites
 Vendor:   cPanel, Inc.
 Name:     %{?scl_prefix}php
 Version:  7.0.4
-Release:  1%{?dist}
+Release:  2%{?dist}
 # All files licensed under PHP version 3.01, except
 # Zend is licensed under Zend
 # TSRM is licensed under BSD
@@ -517,7 +515,6 @@ systems may not work as you expect. In such case, it would be a good
 idea to install the GNU libiconv library. It will most likely end up
 with more consistent results.
 
-%if %{with_imap}
 %package imap
 Summary: A module for PHP applications that use IMAP
 Group: Development/Languages
@@ -525,16 +522,15 @@ Group: Development/Languages
 License: PHP
 Provides: %{?scl_prefix}php-imap%{?_isa} = %{version}-%{release}
 Requires: %{?scl_prefix}php-common%{?_isa} = %{version}-%{release}
+Requires: %{?scl_prefix}libc-client%{?_isa}
 BuildRequires: krb5-devel%{?_isa}, openssl-devel%{?_isa}
+BuildRequires: %{?scl_prefix}libc-client-devel%{?_isa}
 Conflicts: %{?scl_prefix}php-recode = %{version}-%{release}
-BuildRequires: libc-client-devel%{?_isa}
-Requires: libc-client%{?_isa}
 
 %description imap
 The %{?scl_prefix}php-imap module will add IMAP (Internet Message Access Protocol)
 support to PHP. IMAP is a protocol for retrieving and uploading e-mail
 messages on mail servers. PHP is an HTML-embedded scripting language.
-%endif
 
 %package ldap
 Summary: A module for PHP applications that use LDAP
@@ -937,7 +933,7 @@ inside them.
 
 
 %prep
-: Building %{name}-%{version}-%{release} with systemd=%{with_systemd} imap=%{with_imap} interbase=%{with_interbase} mcrypt=%{with_mcrypt} sqlite3=%{with_sqlite3} tidy=%{with_tidy} zip=%{with_zip}
+: Building %{name}-%{version}-%{release} with systemd=%{with_systemd} interbase=%{with_interbase} mcrypt=%{with_mcrypt} sqlite3=%{with_sqlite3} tidy=%{with_tidy} zip=%{with_zip}
 
 %setup -q -n php-%{version}%{?rcver}
 
@@ -1172,9 +1168,8 @@ build --libdir=%{_libdir}/php \
       --enable-opcache \
       --disable-opcache-file \
       --enable-phpdbg \
-%if %{with_imap}
-      --with-imap=shared --with-imap-ssl \
-%endif
+      --with-imap=shared,%{_prefix} \
+      --with-imap-ssl \
       --enable-mbstring=shared \
       --enable-mbregex \
 %if %{with_webp}
@@ -1454,12 +1449,9 @@ install -m 644 %{SOURCE8} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/php-fpm
 %endif
 
 # Generate files lists and stub .ini files for each subpackage
-for mod in pgsql odbc ldap snmp xmlrpc \
+for mod in pgsql odbc ldap snmp xmlrpc imap \
     mysqlnd mysqli pdo_mysql \
     mbstring gd dom xsl soap bcmath dba xmlreader xmlwriter \
-%if %{with_imap}
-    imap \
-%endif
     simplexml bz2 calendar ctype exif ftp gettext gmp iconv \
     sockets tokenizer opcache \
     pdo pdo_pgsql pdo_odbc pdo_sqlite json \
@@ -1766,9 +1758,7 @@ fi
 %files posix -f files.posix
 %files pgsql -f files.pgsql
 %files odbc -f files.odbc
-%if %{with_imap}
 %files imap -f files.imap
-%endif
 %files ldap -f files.ldap
 %files snmp -f files.snmp
 %files xml -f files.xml
@@ -1815,6 +1805,10 @@ fi
 
 
 %changelog
+* Mon Mar 21 2016 S. Kurt Newman <kurt.newman@cpanel.net> - 7.0.4-2
+- Added imap extension across all centos versions by using our
+  own SCL version of libc-client.
+
 * Thu Mar 03 2016 David Nielson <david.nielson@cpanel.net> - 7.0.4-1
 - Updated to version 7.0.4 via update_pkg.pl (EA-4222)
 
