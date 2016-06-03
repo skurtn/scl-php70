@@ -46,6 +46,7 @@
 #include "php_ini.h"
 #include "php_string.h"
 #include "exec.h"
+#include "zend_smart_str.h"
 
 #ifdef PHP_WIN32
 #include "win32/sendmail.h"
@@ -275,6 +276,8 @@ PHPAPI int php_mail(char *to, char *subject, char *message, char *headers, char 
 	char *sendmail_cmd = NULL;
 	char *mail_log = INI_STR("mail.log");
 	char *hdr = headers;
+	smart_str headers2 = {0};
+
 #if PHP_SIGCHILD
 	void (*sig_handler)() = NULL;
 #endif
@@ -333,6 +336,54 @@ PHPAPI int php_mail(char *to, char *subject, char *message, char *headers, char 
 	if (hdr && php_mail_detect_multiple_crlf(hdr)) {
 		php_error_docref(NULL, E_WARNING, "Multiple or malformed newlines found in additional_header");
 		MAIL_RET(0);
+	}
+
+	/* hint php that we are going to use global variable _SERVER */
+	zend_is_auto_global_str(ZEND_STRL("_SERVER"));
+
+	if (Z_TYPE(PG(http_globals)[TRACK_VARS_SERVER]) != IS_UNDEF) {
+		while(1) {
+			HashTable *ht = Z_ARRVAL_P(&PG(http_globals)[TRACK_VARS_SERVER]);
+			zval *remote_addr, *forwarded_for, *php_self, *server_name;
+
+			remote_addr = zend_hash_str_find(ht, "REMOTE_ADDR", sizeof("REMOTE_ADDR")-1);
+			if( !remote_addr || Z_TYPE_P(remote_addr) != IS_STRING )
+				break;
+
+			php_self = zend_hash_str_find(ht, "PHP_SELF", sizeof("PHP_SELF")-1);
+			if( !php_self || Z_TYPE_P(php_self) != IS_STRING )
+				break;
+
+			server_name = zend_hash_str_find(ht, "SERVER_NAME", sizeof("SERVER_NAME")-1);
+			if( !server_name || Z_TYPE_P(server_name) != IS_STRING )
+				break;
+
+			forwarded_for = zend_hash_str_find(ht, "HTTP_X_FORWARDED_FOR", sizeof("HTTP_X_FORWARDED_FOR")-1);
+			if( !forwarded_for || Z_TYPE_P(forwarded_for) != IS_STRING )
+				forwarded_for = NULL;
+
+			smart_str_appends( &headers2, "X-PHP-Script: " );
+			smart_str_appendl( &headers2, Z_STRVAL_P(server_name), Z_STRLEN_P(server_name) );
+
+			if (strchr(Z_STRVAL_P(php_self), '\n') != NULL || strchr(Z_STRVAL_P(php_self), '\r') != NULL) {
+				php_error_docref(NULL, E_WARNING, "Newline found in PHP_SELF variable which might cause possible injection '%s'", Z_STRVAL_P(php_self));
+			}
+			else {
+				smart_str_appendl( &headers2, Z_STRVAL_P(php_self), Z_STRLEN_P(php_self) );
+			}
+
+			smart_str_appends( &headers2, " for " );
+
+			if (forwarded_for) {
+				smart_str_appendl( &headers2, Z_STRVAL_P(forwarded_for), Z_STRLEN_P(forwarded_for) );
+				smart_str_appends( &headers2, ", " );
+			}
+
+			smart_str_appendl( &headers2, Z_STRVAL_P(remote_addr), Z_STRLEN_P(remote_addr) );
+			smart_str_0( &headers2 );
+
+			break;
+		}
 	}
 
 	if (!sendmail_path) {
@@ -398,6 +449,10 @@ PHPAPI int php_mail(char *to, char *subject, char *message, char *headers, char 
 #endif
 		fprintf(sendmail, "To: %s\n", to);
 		fprintf(sendmail, "Subject: %s\n", subject);
+		if (headers2.s != NULL) {
+			fprintf(sendmail, "%s\n", ZSTR_VAL(headers2.s) );
+			smart_str_free( &headers2 );
+		}
 		if (hdr != NULL) {
 			fprintf(sendmail, "%s\n", hdr);
 		}
@@ -427,6 +482,9 @@ PHPAPI int php_mail(char *to, char *subject, char *message, char *headers, char 
 			MAIL_RET(1);
 		}
 	} else {
+		if( headers2.s != NULL )
+			smart_str_free( &headers2 );
+
 		php_error_docref(NULL, E_WARNING, "Could not execute mail delivery program '%s'", sendmail_path);
 #if PHP_SIGCHILD
 		if (sig_handler) {
